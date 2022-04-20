@@ -20,6 +20,12 @@
  *
  * @see https://developer.wordpress.org/reference/functions/register_block_type/
  */
+
+defined('ABSPATH') or die('No access');
+if( ! function_exists('add_action')){
+    die('No access');
+}
+
 function create_block_jpg_fnugg_block_block_init() {
 	register_block_type( __DIR__ . '/build' );
 }
