@@ -29,10 +29,19 @@ import './editor.scss';
  *
  * @return {WPElement} Element to render.
  */
-export default function Edit() {
-	return (
-		<p { ...useBlockProps() }>
-			{ __( 'Jpg Fnugg Block – hello from the editor!', 'jpg-fnugg-block' ) }
-		</p>
+ 
+ import FnuggAutocomplete from './fnugg-autocomplete';
+
+export default function Edit(props) {
+	function onChangeResort(e){
+		console.log(e);
+	}
+
+    return (
+		<FnuggAutocomplete 
+			id={''+Date.now()}
+			label= {__('Search a resort: ','jpg-fnugg-block')}
+			onChange={ onChangeResort }
+		/>
 	);
 }
