@@ -30,3 +30,7 @@ function create_block_jpg_fnugg_block_block_init() {
 	register_block_type( __DIR__ . '/build' );
 }
 add_action( 'init', 'create_block_jpg_fnugg_block_block_init' );
+
+if(!class_exists('FnuggAPIMiddleware')){
+    require(__DIR__.'/src/FnuggAPIMiddleware.php');
+}
