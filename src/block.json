@@ -11,13 +11,9 @@
 		"html": true
 	},
 	"attributes": {
-		"search":{
-			"type":"string",
-			"default":""
-		},
-		"resort":{
-			"type":"string",
-			"default":""
+		"resortData":{
+			"type":"object",
+			"default":{}
 		}
 	},
 	"textdomain": "jpg-fnugg-block",

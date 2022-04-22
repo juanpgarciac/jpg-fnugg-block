@@ -22,13 +22,10 @@ import { useBlockProps } from '@wordpress/block-editor';
  *
  * @return {WPElement} Element to render.
  */
-export default function save() {
-	return (
-		<p { ...useBlockProps.save() }>
-			{ __(
-				'Jpg Fnugg Block – hello from the saved content!',
-				'jpg-fnugg-block'
-			) }
-		</p>
-	);
+
+import FnuggCard from './fnugg-card';
+
+export default function save(props) {
+    const { attributes } = props;
+    return (<FnuggCard {...useBlockProps.save()} attrs={attributes} />);
 }

@@ -30,18 +30,30 @@ import './editor.scss';
  * @return {WPElement} Element to render.
  */
  
- import FnuggAutocomplete from './fnugg-autocomplete';
+import FnuggAutocomplete from './fnugg-autocomplete';
+import FnuggCard from './fnugg-card';
 
 export default function Edit(props) {
-	function onChangeResort(e){
-		console.log(e);
+
+    const {
+        attributes,
+        setAttributes,
+    } = props;
+
+	function onChangeResort(_resortData){
+		setAttributes({resortData:_resortData});
 	}
 
     return (
-		<FnuggAutocomplete 
-			id={''+Date.now()}
-			label= {__('Search a resort: ','jpg-fnugg-block')}
-			onChange={ onChangeResort }
-		/>
+		<div>
+			<FnuggAutocomplete 
+				id={''+Date.now()}
+				label= {__('Search a resort: ','jpg-fnugg-block')}
+				onChange = { onChangeResort }
+				attrs={attributes}
+			/>
+            <br />
+			<FnuggCard attrs = {attributes} />
+		</div>
 	);
 }
