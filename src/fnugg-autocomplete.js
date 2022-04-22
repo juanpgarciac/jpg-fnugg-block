@@ -41,7 +41,7 @@ class FnuggAutocomplete extends React.Component {
     async getResorts(q){    
         if(this.isBusy() || this.isStillTyping)return;
         this.setState( {disabled: true, busy:true})
-        const response = await fetch('http://localhost/sites/mollie-challenge/wp-json/jpg-fnugg-api/v1/autocomplete/'+q);
+        const response = await fetch('/wp-json/jpg-fnugg-api/v1/autocomplete/'+q);
         const data = await response.json();
         let o = data.result;
         if(! isEmpty( o ))
@@ -53,7 +53,7 @@ class FnuggAutocomplete extends React.Component {
         if(this.isBusy())return;
         let comp = this;
         this.setState( {busy:true}, async function(){
-            const response = await fetch('http://localhost/sites/mollie-challenge/wp-json/jpg-fnugg-api/v1/search/'+q);
+            const response = await fetch('/wp-json/jpg-fnugg-api/v1/search/'+q);
             const data = await response.json();
             console.log("fecthResort",data);
             comp.props.onChange(data);
@@ -74,7 +74,7 @@ class FnuggAutocomplete extends React.Component {
         this.setState( {disabled: !resortExist, busy:false })
     }
     handleClick(){
-        //fetch resort info and insert block. 
+        this.fecthResort(this.state.value);
     }
     isBusy(){
         return this.state.busy;
@@ -83,7 +83,7 @@ class FnuggAutocomplete extends React.Component {
         if(this.isBusy()){
             return <div><Spinner/><span>Please wait. Looking for resorts...</span></div>
         }else{
-            return (isEmpty( this.state.options ))? 'No resorts found. Please make a new search.':'';
+            return (isEmpty( this.state.options ) || !this._resortExist())? 'No resorts found. Please make a new search.':'';
         }
     }
 
@@ -95,13 +95,10 @@ class FnuggAutocomplete extends React.Component {
                 <label for={ blockId }>{ this.props.label }</label>
                 <input list={ blockId } value={ this.state.value } onInput={ this.typing }/>
                 <datalist id={ blockId }>
-                    { this.state.options.map( ( option, index ) =>
-                    <option value={ option.name } readonly/>
-                    ) }
+                    { this.state.options.map( ( option, index ) => <option value={ option.name } readonly/>) }
                 </datalist>
-                
                 <button onClick={ this.handleClick} disabled={ this.state.disabled }>
-                    Add resort block
+                    Refresh
                 </button>
                 <br/>
                 <label>{  this.checkOptions()  } </label>
