@@ -54,17 +54,18 @@ class FnuggAPIMiddleware
      */
 
     function fnugg_fetch_resort( WP_REST_Request $request ) {
-        //https://api.fnugg.no/search?q=Gausta%20Skisenter&sourceFields=name,images.image_1_1_s,conditions.forecast.today.top,region
-        //_source <- container
+
         $query = $request['query'];
 
-        $response = wp_remote_get( FNUGGAPIURL."/search?q=$query&&sourceFields=name,images.image_1_1_s,conditions.forecast.today.top,region");
+        $response = wp_remote_get( FNUGGAPIURL."/search?q=$query&sourceFields=name,images.image_1_1_s,conditions.forecast.today.top,region");
         
         if( is_wp_error( $response ) ) {
             return new WP_Error( 'error', 'There was an error processing the query');
         }
+
         $data = json_decode(  $response['body'],true);
         
+        //If the data hits the resort, extract the requested parameters 
         if(isset($data["hits"]["hits"][0]["_source"])){
             $source = $data["hits"]["hits"][0]["_source"];
             $conditions = $source["conditions"]["forecast"]["today"]["top"];
@@ -72,7 +73,7 @@ class FnuggAPIMiddleware
                 "name" => $source["name"],
                 "image" => $source["images"]["image_1_1_s"],
                 "region" => $source["region"][0],
-                "last_updated" => $conditions["last_updated"],
+                "last_updated" => date("d.m.Y - h:i",strtotime($conditions["last_updated"])),
                 "sky" => $conditions["symbol"]["name"],
                 "condition" => $conditions["condition_description"],
                 "wind" => $conditions["wind"],
