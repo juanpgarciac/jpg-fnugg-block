@@ -48,14 +48,13 @@ export default function Edit(props) {
     }
 
     return (
-		<div class="jpg-fnugg-block">
+		<div { ...useBlockProps( {   className:"jpg-fnugg-block" } ) } >
 			<FnuggAutocomplete 
 				id={ attributes.id }
 				label= {__('Search a resort: ','jpg-fnugg-block')}
 				onChange = { onChangeResort }
 				attrs={attributes}
 			/>
-            <br />
 			<FnuggCard attrs = {attributes} />
 		</div>
 	);
