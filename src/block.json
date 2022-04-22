@@ -1,16 +1,20 @@
 {
 	"$schema": "https://schemas.wp.org/trunk/block.json",
 	"apiVersion": 2,
-	"name": "create-block/jpg-fnugg-block",
-	"version": "0.1.0",
-	"title": "Fnugg resorts search Block",
+	"name": "jpg/fnugg-block",
+	"version": "1.0.0",
+	"title": "Fnugg resorts Block",
 	"category": "widgets",
 	"icon": "flag",
-	"description": "Fnugg resorts search Block.",
+	"description": "Fnugg resorts search component and view card Block.",
 	"supports": {
-		"html": false
+		"html": true
 	},
 	"attributes": {
+		"search":{
+			"type":"string",
+			"default":""
+		},
 		"resort":{
 			"type":"string",
 			"default":""
