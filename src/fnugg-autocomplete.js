@@ -25,13 +25,13 @@ class FnuggAutocomplete extends React.Component {
         return this.state.options.some(exist);
     }
     typing(e){
-        this.setState({isStillTyping:true});
         if(this.state.typingTimeOut)
             clearTimeout(this.state.typingTimeOut);
+        this.setState({isStillTyping:true});
         let val = e.target.value;
         let comp = this;
         this.setState({value:val},function(){
-            if(!comp._resortExist())
+            if(!comp._resortExist())                            
                 comp.state.typingTimeOut = setTimeout(comp.onChangeValue, 500,val);
             else{
                 this.fecthResort(val);
@@ -39,39 +39,43 @@ class FnuggAutocomplete extends React.Component {
         })        
     }
     async getResorts(q){    
-        if(this.isBusy() || this.isStillTyping)return;
+        if(this.isBusy() || this.isStillTyping)
+            return;
+
         this.setState( {disabled: true, busy:true})
-        const response = await fetch('/wp-json/jpg-fnugg-api/v1/autocomplete/'+q);
-        const data = await response.json();
-        let o = data.result;
-        if(! isEmpty( o ))
-            this.setState({options:o})
-        else this.setState({options:[]})
-        return ;
+        const response = await fetch('/wp-json/jpg-fnugg-api/v1/autocomplete/'+q).catch((error) => {console.log(error)});
+        let o = [];
+        if(response.ok){
+            const data = await response.json();
+            o = data.result;
+        }
+        return o;
     }
     async fecthResort(q){
         if(this.isBusy())return;
         let comp = this;
         this.setState( {busy:true}, async function(){
-            const response = await fetch('/wp-json/jpg-fnugg-api/v1/search/'+q);
-            const data = await response.json();
-            console.log("fecthResort",data);
-            comp.props.onChange(data);
+            const response = await fetch('/wp-json/jpg-fnugg-api/v1/search/'+q).catch((error) => {console.log(error)});
+            if(response.ok){
+                const data = await response.json();
+                comp.props.onChange(data);    
+            }else{
+
+            }
             comp.setState( {disabled: false, busy:false})
         })      
     }
     async onChangeValue ( val ){
-        console.log('onChangeValue');
-        if(this.isBusy() || this.isStillTyping)return;
+        if(this.isBusy() || this.isStillTyping)
+            return;
+
         this.setState({isStillTyping:false});
-        const exist  = (element) => element.name == val;
-        if(val.length <= 1){
-            this.setState({options:[]})
-        }else{
-            await this.getResorts(val)
-        }
-        let resortExist = this.state.options.some(exist);
-        this.setState( {disabled: !resortExist, busy:false })
+        let comp = this;
+        if(val.length >  1)
+            this.setState({options:  await comp.getResorts(val)   })
+        else
+            this.setState({options:  [] })
+        this.setState( {disabled: !comp._resortExist(), busy:false })
     }
     handleClick(){
         this.fecthResort(this.state.value);
@@ -98,7 +102,7 @@ class FnuggAutocomplete extends React.Component {
                     { this.state.options.map( ( option, index ) => <option value={ option.name } readonly/>) }
                 </datalist>
                 <button onClick={ this.handleClick} disabled={ this.state.disabled }>
-                    Refresh
+                    Refresh resort info
                 </button>
                 <br/>
                 <label>{  this.checkOptions()  } </label>

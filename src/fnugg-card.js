@@ -1,10 +1,8 @@
 class FnuggCard extends React.Component {
 	constructor(props){
-		console.log("FnuggCard init",props);
 		super(props);
 	}
 	render(){
-
 		return (<div>
 			<h3>{this.props.attrs?.resortData?.name}</h3>
             <img src={this.props.attrs?.resortData?.image} />

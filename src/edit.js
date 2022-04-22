@@ -35,19 +35,22 @@ import FnuggCard from './fnugg-card';
 
 export default function Edit(props) {
 
-    const {
-        attributes,
-        setAttributes,
-    } = props;
+    const { attributes,setAttributes } = props;
 
 	function onChangeResort(_resortData){
+        //When the admin changes a resort the attributes are updated for published content
 		setAttributes({resortData:_resortData});
 	}
+
+    if(!attributes.id){
+        //give an unique Id to the autocomplete block (and save it)
+        setAttributes({id:''+Date.now()});
+    }
 
     return (
 		<div>
 			<FnuggAutocomplete 
-				id={''+Date.now()}
+				id={ attributes.id }
 				label= {__('Search a resort: ','jpg-fnugg-block')}
 				onChange = { onChangeResort }
 				attrs={attributes}

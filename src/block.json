@@ -11,6 +11,10 @@
 		"html": true
 	},
 	"attributes": {
+		"id":{
+			"type":"string",
+			"default":""
+		},
 		"resortData":{
 			"type":"object",
 			"default":{}
