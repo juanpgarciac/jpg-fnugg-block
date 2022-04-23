@@ -21,6 +21,8 @@ class FnuggAPIMiddleware
     }
 
     public function register_routes(){
+
+        //register autocomplete api route
         register_rest_route( 'jpg-fnugg-api/v1', '/autocomplete(?:/(?P<query>.+))?', array(
             'methods' => 'GET',
             'callback' => array($this,'fnugg_fetch_autocomplete'),
@@ -30,6 +32,7 @@ class FnuggAPIMiddleware
             'permission_callback' => '__return_true'
           ) );
 
+        //register search resort (by name) api route
         register_rest_route( 'jpg-fnugg-api/v1', '/search(?:/(?P<query>.+))?', array(
             'methods' => 'GET',
             'callback' => array($this,'fnugg_fetch_resort'),
@@ -49,17 +52,48 @@ class FnuggAPIMiddleware
      */
     function fnugg_fetch_autocomplete( $request ) {        
 
-        $query = $request['query'];
+        $query = urldecode($request['query']);
 
-        $response = wp_remote_get( FNUGG_API_URL."/suggest/autocomplete?q=$query");
-        
-        if( is_wp_error( $response ) ) {
-            return new WP_Error( 'error', 'There was an error processing the query');
-        }
-        $data = [];
-        if(isset($response['body'])){            
-            $data = json_decode(  $response['body'],true);
-            $data = $data["result"] ?? [];
+        //$this->InstanceCache->clear();
+
+        //get query from cache (I use autocomplete prefix to avoid conflict with the resort names cache keys)
+        $cachedQuery = $this->InstanceCache->getItem('autocomplete-'.$query);
+
+
+        //get collected resort names from cache (if any)
+        $cachedResortNames = $this->InstanceCache->getItem('results');        
+
+
+        //if the query is not found or expired, or the resortnames list is empty: fetch api, save the data response into cache and return it. 
+        if (!$cachedQuery->isHit() || $cachedResortNames->get() == null || $cachedResortNames->isEmpty() ) {
+
+            $response = wp_remote_get( FNUGG_API_URL."/suggest/autocomplete?q=$query");
+            
+            if( is_wp_error( $response ) ) {
+                return new WP_Error( 'error', 'There was an error processing the query');
+            }
+            $data = [];
+            if(isset($response['body'])){            
+                $data = json_decode(  $response['body'],true);
+                $data = isset($data["result"]) ? array_column($data["result"],"name") ?? [] : [] ;
+            }
+            //CACHE HANDLING (SET)
+
+            //merge and make unique set of resorts names and save it into cache (this is for avoid redundant info)
+            $newSetResortNames = array_unique(array_merge($data,$cachedResortNames->get() ?? []),SORT_REGULAR);
+            $cachedResortNames->set($newSetResortNames)->expiresAfter(FNUGG_CACHE_EXPIRATION); 
+            $this->InstanceCache->save($cachedResortNames);
+
+
+            //set the query into cache (I use autocomplete prefix to avoid conflict with the resort cache keys)
+            $cachedQuery->set('autocomplete-'.$query)->expiresAfter(FNUGG_CACHE_EXPIRATION); 
+            $this->InstanceCache->save($cachedQuery);
+
+        } else {
+            //otherwise return cached results from the saved resorts names (with the filter logic for "autocomplete"). 
+            $data = array_filter($cachedResortNames->get()??[],function($entry) use ($query){
+                return mb_strpos(strtolower($entry), strtolower($query)) !== false;
+            });
         }
 
         return $data;
@@ -105,6 +139,8 @@ class FnuggAPIMiddleware
                     "temperature" => $conditions["temperature"]
                 ];
                 
+                //CACHE HANDLING (SET)
+
                 $cachedResort->set($resort)->expiresAfter(FNUGG_CACHE_EXPIRATION); 
                 $this->InstanceCache->save($cachedResort); 
                 

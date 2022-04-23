@@ -21,7 +21,7 @@ class FnuggAutocomplete extends React.Component {
     }
     _resortExist(){
         let val = this.state.value;
-        const exist  = (element) => element.name.trim().toLowerCase() === val.trim().toLowerCase();
+        const exist  = (element) => element.trim().toLowerCase() === val.trim().toLowerCase();
         return this.state.options.some(exist);
     }
     typing(e){
@@ -47,7 +47,7 @@ class FnuggAutocomplete extends React.Component {
         let o = [];
         if(response.ok){
             const data = await response.json();
-            o = data;
+            o = Object.values(data);
         }
         return o;
     }
@@ -99,7 +99,7 @@ class FnuggAutocomplete extends React.Component {
                 <label for={ blockId }>{ this.props.label }</label>
                 <input list={ blockId } value={ this.state.value } onInput={ this.typing }/>
                 <datalist id={ blockId }>
-                    { this.state.options.map( ( option, index ) => <option value={ option.name } readonly/>) }
+                    { this.state.options.map( ( option, index ) => <option value={option} readonly/>) }
                 </datalist>
                 <button onClick={ this.handleClick} disabled={ this.state.disabled }>
                     Refresh resort info
