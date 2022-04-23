@@ -31,6 +31,8 @@ function create_block_jpg_fnugg_block_block_init() {
 }
 add_action( 'init', 'create_block_jpg_fnugg_block_block_init' );
 
+require(__DIR__.'/vendor/autoload.php'); //loading external libraries
+
 if(!class_exists('FnuggAPIMiddleware')){
     require(__DIR__.'/app/FnuggAPIMiddleware.php');
 }

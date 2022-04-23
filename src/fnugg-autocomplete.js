@@ -47,7 +47,7 @@ class FnuggAutocomplete extends React.Component {
         let o = [];
         if(response.ok){
             const data = await response.json();
-            o = data.result;
+            o = data;
         }
         return o;
     }

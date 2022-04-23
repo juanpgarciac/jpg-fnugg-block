@@ -1,9 +1,23 @@
 <?php
+namespace App;
+use Phpfastcache\CacheManager;
+use Phpfastcache\Config\ConfigurationOption;
+
 //define endpoint
 define('FNUGGAPIURL','https://api.fnugg.no');
 
 class FnuggAPIMiddleware
 {
+    private $InstanceCache = null;
+
+    function __construct(){
+        //Init cache handler (https://github.com/PHPSocialNetwork/phpfastcache)
+        CacheManager::setDefaultConfig(new ConfigurationOption([
+            'path' => sys_get_temp_dir().'/.phpfastcache',
+        ]));
+        
+        $InstanceCache = CacheManager::getInstance('files');
+    }
 
     public function register_routes(){
         register_rest_route( 'jpg-fnugg-api/v1', '/autocomplete(?:/(?P<query>.+))?', array(
@@ -32,7 +46,7 @@ class FnuggAPIMiddleware
      * @param WP_REST_Request request
      * @return string in JSON format
      */
-    function fnugg_fetch_autocomplete( WP_REST_Request $request ) {        
+    function fnugg_fetch_autocomplete( $request ) {        
 
         $query = $request['query'];
 
@@ -41,8 +55,12 @@ class FnuggAPIMiddleware
         if( is_wp_error( $response ) ) {
             return new WP_Error( 'error', 'There was an error processing the query');
         }
-        $data = json_decode(  $response['body'],true);
-    
+        $data = [];
+        if(isset($response['body'])){            
+            $data = json_decode(  $response['body'],true);
+            $data = $data["result"] ?? [];
+        }
+
         return $data;
     }
 
@@ -53,11 +71,12 @@ class FnuggAPIMiddleware
      * @return string in JSON format
      */
 
-    function fnugg_fetch_resort( WP_REST_Request $request ) {
+    function fnugg_fetch_resort( $request ) {
 
         $query = $request['query'];
 
-        $response = wp_remote_get( FNUGGAPIURL."/search?q=$query&sourceFields=name,images.image_1_1_s,conditions.forecast.today.top,region");
+        $sourceFields = 'name,images.image_1_1_s,conditions.forecast.today.top,region';
+        $response = wp_remote_get( FNUGGAPIURL."/search?q={$query}&sourceFields={$sourceFields}");
         
         if( is_wp_error( $response ) ) {
             return new WP_Error( 'error', 'There was an error processing the query');
@@ -88,6 +107,6 @@ class FnuggAPIMiddleware
 }
 
 
-$fnuggapi = new FnuggAPIMiddleware();
+$fnuggapi = new \App\FnuggAPIMiddleware();
 
 add_action( 'rest_api_init', array($fnuggapi,'register_routes'));
