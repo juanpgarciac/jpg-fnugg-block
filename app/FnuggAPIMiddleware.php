@@ -3,8 +3,9 @@ namespace App;
 use Phpfastcache\CacheManager;
 use Phpfastcache\Config\ConfigurationOption;
 
-//define endpoint
-define('FNUGGAPIURL','https://api.fnugg.no');
+define('FNUGG_API_URL','https://api.fnugg.no');//Fnugg api base url
+define('FNUGG_CACHE_EXPIRATION',86400); //Cache time expiration in seconds
+
 
 class FnuggAPIMiddleware
 {
@@ -16,7 +17,7 @@ class FnuggAPIMiddleware
             'path' => sys_get_temp_dir().'/.phpfastcache',
         ]));
         
-        $InstanceCache = CacheManager::getInstance('files');
+        $this->InstanceCache = CacheManager::getInstance('files');
     }
 
     public function register_routes(){
@@ -50,7 +51,7 @@ class FnuggAPIMiddleware
 
         $query = $request['query'];
 
-        $response = wp_remote_get( FNUGGAPIURL."/suggest/autocomplete?q=$query");
+        $response = wp_remote_get( FNUGG_API_URL."/suggest/autocomplete?q=$query");
         
         if( is_wp_error( $response ) ) {
             return new WP_Error( 'error', 'There was an error processing the query');
@@ -75,30 +76,43 @@ class FnuggAPIMiddleware
 
         $query = $request['query'];
 
-        $sourceFields = 'name,images.image_1_1_s,conditions.forecast.today.top,region';
-        $response = wp_remote_get( FNUGGAPIURL."/search?q={$query}&sourceFields={$sourceFields}");
-        
-        if( is_wp_error( $response ) ) {
-            return new WP_Error( 'error', 'There was an error processing the query');
-        }
+        //get resort from cache 
+        $cachedResort = $this->InstanceCache->getItem($query);
 
-        $data = json_decode(  $response['body'],true);
-        
-        //If the data hits the resort, extract the requested parameters 
-        if(isset($data["hits"]["hits"][0]["_source"])){
-            $source = $data["hits"]["hits"][0]["_source"];
-            $conditions = $source["conditions"]["forecast"]["today"]["top"];
-            $resort = [
-                "name" => $source["name"],
-                "image" => $source["images"]["image_1_1_s"],
-                "region" => $source["region"][0],
-                "last_updated" => date("d.m.Y - h:i",strtotime($conditions["last_updated"])),
-                "sky" => $conditions["symbol"]["name"],
-                "condition" => $conditions["condition_description"],
-                "wind" => $conditions["wind"],
-                "temperature" => $conditions["temperature"]
-            ];
-            return $resort;
+        //if the resort "key" is not found or expired: fetch api, save the data response into cache and return it. 
+        if (!$cachedResort->isHit()) {
+            $sourceFields = 'name,images.image_1_1_s,conditions.forecast.today.top,region';
+            $response = wp_remote_get( FNUGG_API_URL."/search?q={$query}&sourceFields={$sourceFields}");
+            
+            if( is_wp_error( $response ) ) {
+                return new WP_Error( 'error', 'There was an error processing the query');
+            }
+
+            $data = json_decode(  $response['body'],true);
+            
+            //If the data hits the resort, extract the requested parameters 
+            if(isset($data["hits"]["hits"][0]["_source"])){
+                $source = $data["hits"]["hits"][0]["_source"];
+                $conditions = $source["conditions"]["forecast"]["today"]["top"];
+                $resort = [
+                    "name" => $source["name"],
+                    "image" => $source["images"]["image_1_1_s"],
+                    "region" => $source["region"][0],
+                    "last_updated" => date("d.m.Y - h:i",strtotime($conditions["last_updated"])),
+                    "sky" => $conditions["symbol"]["name"],
+                    "condition" => $conditions["condition_description"],
+                    "wind" => $conditions["wind"],
+                    "temperature" => $conditions["temperature"]
+                ];
+                
+                $cachedResort->set($resort)->expiresAfter(FNUGG_CACHE_EXPIRATION); 
+                $this->InstanceCache->save($cachedResort); 
+                
+                return $resort;
+            }
+        } else {
+            //otherwise return cached resort. 
+            return $cachedResort->get();
         }
         return new WP_Error( 'error', 'There was an error processing the query');
     }
