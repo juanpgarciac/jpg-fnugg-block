@@ -23,7 +23,7 @@ import { useBlockProps } from '@wordpress/block-editor';
  * @return {WPElement} Element to render.
  */
 
-import FnuggCard from './fnugg-card';
+import FnuggCard from './components/fnugg-card';
 
 export default function save(props) {
     const { attributes } = props;

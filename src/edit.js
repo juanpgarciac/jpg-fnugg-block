@@ -30,8 +30,8 @@ import './editor.scss';
  * @return {WPElement} Element to render.
  */
  
-import FnuggAutocomplete from './fnugg-autocomplete';
-import FnuggCard from './fnugg-card';
+import FnuggAutocomplete from './components/fnugg-autocomplete';
+import FnuggCard from './components/fnugg-card';
 
 export default function Edit(props) {
 
