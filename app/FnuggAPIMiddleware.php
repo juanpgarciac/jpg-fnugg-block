@@ -95,7 +95,7 @@ class FnuggAPIMiddleware
                 return mb_strpos(strtolower($entry), strtolower($query)) !== false;
             });
         }
-
+        sort($data);
         return $data;
     }
 
