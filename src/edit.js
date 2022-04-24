@@ -55,7 +55,7 @@ export default function Edit(props) {
 				onChange = { onChangeResort }
 				attrs={attributes}
 			/>
-			<FnuggCard attrs = {attributes} />
+			<FnuggCard attrs = {attributes} __={ __ } />
 		</div>
 	);
 }

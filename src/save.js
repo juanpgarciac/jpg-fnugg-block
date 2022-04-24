@@ -27,5 +27,5 @@ import FnuggCard from './components/fnugg-card';
 
 export default function save(props) {
     const { attributes } = props;
-    return (<FnuggCard {...useBlockProps.save()} attrs={attributes} />);
+    return (<FnuggCard {...useBlockProps.save()} attrs={attributes}  __={ __ }  />);
 }
