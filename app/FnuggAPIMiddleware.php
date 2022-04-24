@@ -50,14 +50,14 @@ class FnuggAPIMiddleware
      * @param WP_REST_Request request
      * @return string in JSON format
      */
-    function fnugg_fetch_autocomplete( $request ) {        
+    function fnugg_fetch_autocomplete(\WP_REST_Request $request ) {        
 
         $query = urldecode($request['query']);
 
         //$this->InstanceCache->clear();
 
-        //get query from cache (I use autocomplete prefix to avoid conflict with the resort names cache keys)
-        $cachedQuery = $this->InstanceCache->getItem('autocomplete-'.$query);
+        //get query from cache (I use autocomplete prefix to avoid conflict with the resort names cache keys).  (also replace invalid characters for safe _ )
+        $cachedQuery = $this->InstanceCache->getItem('autocomplete-'.str_replace(str_split('{}()/\@:'),'_',$query));
 
 
         //get collected resort names from cache (if any)
@@ -70,7 +70,7 @@ class FnuggAPIMiddleware
             $response = wp_remote_get( FNUGG_API_URL."/suggest/autocomplete?q=$query");
             
             if( is_wp_error( $response ) ) {
-                return new WP_Error( 'error', 'There was an error processing the query');
+                return new \WP_Error( 'error', 'There was an error processing the query');
             }
             $data = [];
             if(isset($response['body'])){            
@@ -106,12 +106,12 @@ class FnuggAPIMiddleware
      * @return string in JSON format
      */
 
-    function fnugg_fetch_resort( $request ) {
+    function fnugg_fetch_resort( \WP_REST_Request $request ) {
 
         $query = $request['query'];
 
-        //get resort from cache 
-        $cachedResort = $this->InstanceCache->getItem($query);
+        //get resort from cache (replace invalid characters for safe _ )
+        $cachedResort = $this->InstanceCache->getItem(str_replace(str_split('{}()/\@:'),'_',$query));
 
         //if the resort "key" is not found or expired: fetch api, save the data response into cache and return it. 
         if (!$cachedResort->isHit()) {
@@ -119,7 +119,7 @@ class FnuggAPIMiddleware
             $response = wp_remote_get( FNUGG_API_URL."/search?q={$query}&sourceFields={$sourceFields}");
             
             if( is_wp_error( $response ) ) {
-                return new WP_Error( 'error', 'There was an error processing the query');
+                return new \WP_Error( 'error', 'There was an error processing the query');
             }
 
             $data = json_decode(  $response['body'],true);
@@ -150,7 +150,7 @@ class FnuggAPIMiddleware
             //otherwise return cached resort. 
             return $cachedResort->get();
         }
-        return new WP_Error( 'error', 'There was an error processing the query');
+        return new \WP_Error( 'error', 'There was an error processing the query');
     }
 
 
