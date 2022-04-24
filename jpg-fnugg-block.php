@@ -28,6 +28,7 @@ if( ! function_exists('add_action')){
 
 function create_block_jpg_fnugg_block_block_init() {
 	register_block_type( __DIR__ . '/build' );
+    wp_enqueue_style( 'jpg-font-awesome', 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.14.0/css/all.min.css');
 }
 add_action( 'init', 'create_block_jpg_fnugg_block_block_init' );
 
