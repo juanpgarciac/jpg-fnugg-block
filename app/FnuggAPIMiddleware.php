@@ -54,7 +54,7 @@ class FnuggAPIMiddleware
 
         $query = urldecode($request['query']);
 
-        //$this->InstanceCache->clear();
+        //$this->InstanceCache->clear(); //clear cache. 
 
         //get query from cache (I use autocomplete prefix to avoid conflict with the resort names cache keys).  (also replace invalid characters for safe _ )
         $cachedQuery = $this->InstanceCache->getItem('autocomplete-'.str_replace(str_split('{}()/\@:'),'_',$query));
