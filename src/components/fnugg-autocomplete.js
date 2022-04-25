@@ -1,6 +1,7 @@
 import { Spinner } from '@wordpress/components';
 import { isEmpty } from 'lodash';
 import { TextControl, Button } from '@wordpress/components';
+
 class FnuggAutocomplete extends React.Component {
     constructor(props){
         super(props);        
@@ -56,13 +57,14 @@ class FnuggAutocomplete extends React.Component {
         let comp = this;//for avoiding further 'this' scope problem. 
         let o = [];
         try {
-            const response = await fetch('/wp-json/jpg-fnugg-api/v1/autocomplete/'+q);
+            const url = wp?.data?.select( 'core' )?.getSite()?.url ?? '' ;//get current site URL with the wp object
+            const response = await fetch(url + '/wp-json/jpg-fnugg-api/v1/autocomplete/'+q);
             if(response.ok){
                 const data = await response.json();
                 o = Object.values(data);
                 
             }else{
-                comp.handleError(error);
+                comp.handleError(response??'Error');
             }    
         } catch (error) {
             comp.handleError(error);
@@ -75,13 +77,14 @@ class FnuggAutocomplete extends React.Component {
         let comp = this;//for avoiding further 'this' scope problem. 
         this.setState( {busy:true}, async function(){
             try {
-                const response = await fetch('/wp-json/jpg-fnugg-api/v1/search/'+q);
+                const url = wp?.data?.select( 'core' )?.getSite()?.url ?? '' ;//get current site URL with the wp object
+                const response = await fetch(url + '/wp-json/jpg-fnugg-api/v1/search/'+q);
                 if(response.ok){
                     const data = await response.json();
                     comp.props.onChange(data);    
                     comp.setState( {disabled: false, busy:false})
                 }else{
-                    comp.handleError(error);
+                    comp.handleError(response??'Error');
                 }    
             } catch (error) {
                 comp.handleError(error);
@@ -115,7 +118,7 @@ class FnuggAutocomplete extends React.Component {
     }
     showNotice(){
         if(this.isError()){
-            return <span className="jpg-fnugg-block-error">{this.props.__('There was an error processing the query.','jpg-fnugg-block')}</span>
+            return <small className="jpg-fnugg-block-error">{this.props.__('Oops, there was an error processing the query. Please try again.','jpg-fnugg-block')}</small>
         }
         if(this.isBusy()){
             return (<div><Spinner/><span>{this.props.__('Please wait...','jpg-fnugg-block')}</span></div>)
