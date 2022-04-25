@@ -3,21 +3,24 @@ import { isEmpty } from 'lodash';
 import { TextControl, Button } from '@wordpress/components';
 class FnuggAutocomplete extends React.Component {
     constructor(props){
-        super(props);
+        super(props);        
         this.state = {
             options: [],
             value:this.props.attrs?.resortData?.name,
             disabled:true,
             busy: false,
             typingTimeOut:null,
-            isStillTyping:false
+            isStillTyping:false,
+            error:false,
         }
+        
         this.onChangeValue = this.onChangeValue.bind(this);
-        this.handleClick = this.handleClick.bind(this);
+        this.handleClick = this.handleClick.bind(this);        
         this.typing = this.typing.bind(this);
         this._resortExist =this._resortExist.bind(this);
         this.isBusy =this.isBusy.bind(this);
-        this.checkOptions =this.checkOptions.bind(this);
+        this.showNotice =this.showNotice.bind(this);
+        this.handleError =this.handleError.bind(this);
     }
     componentDidMount(){
         //if there is a saved result, add it as an initial and unique option. 
@@ -32,68 +35,92 @@ class FnuggAutocomplete extends React.Component {
         return this.state.options.some(exist);
     }
     typing(val){
+        //this function guarantees a grace time before fetching using a timeout.
         if(this.state.typingTimeOut)
             clearTimeout(this.state.typingTimeOut);
-        this.setState({isStillTyping:true});
+        this.setState({isStillTyping:true,error:false});
         let comp = this;
         this.setState({value:val},function(){
             if(!comp._resortExist())                            
-                comp.state.typingTimeOut = setTimeout(comp.onChangeValue, 500,val);
+                comp.state.typingTimeOut = setTimeout(comp.onChangeValue, 400,val);
             else{
-                this.fecthResort(val);
+                comp.fecthResort(val).catch(comp.handleError);
             }
         })        
     }
-    async getResorts(q){    
-        if(this.isBusy() || this.isStillTyping)
+    async getResorts(q){  
+        //function that fetchs the resort info that will be pass to the FnuggCard component  
+        if(this.isBusy() || this.state.isStillTyping)
             return;
-
         this.setState( {disabled: true, busy:true})
-        const response = await fetch('/wp-json/jpg-fnugg-api/v1/autocomplete/'+q).catch((error) => {console.log(error)});
+        let comp = this;//for avoiding further 'this' scope problem. 
         let o = [];
-        if(response.ok){
-            const data = await response.json();
-            o = Object.values(data);
+        try {
+            const response = await fetch('/wp-json/jpg-fnugg-api/v1/autocomplete/'+q);
+            if(response.ok){
+                const data = await response.json();
+                o = Object.values(data);
+                
+            }else{
+                comp.handleError(error);
+            }    
+        } catch (error) {
+            comp.handleError(error);
         }
         return o;
     }
     async fecthResort(q){
+        //function that fetchs the resort info that will be pass to the FnuggCard component
         if(this.isBusy())return;
-        let comp = this;
+        let comp = this;//for avoiding further 'this' scope problem. 
         this.setState( {busy:true}, async function(){
-            const response = await fetch('/wp-json/jpg-fnugg-api/v1/search/'+q).catch((error) => {console.log(error)});
-            if(response.ok){
-                const data = await response.json();
-                comp.props.onChange(data);    
-            }else{
-
-            }
-            comp.setState( {disabled: false, busy:false})
-        })      
+            try {
+                const response = await fetch('/wp-json/jpg-fnugg-api/v1/search/'+q);
+                if(response.ok){
+                    const data = await response.json();
+                    comp.props.onChange(data);    
+                    comp.setState( {disabled: false, busy:false})
+                }else{
+                    comp.handleError(error);
+                }    
+            } catch (error) {
+                comp.handleError(error);
+            }            
+            
+        })
     }
     async onChangeValue ( val ){
-        if(this.isBusy() || this.isStillTyping)
-            return;
-
         this.setState({isStillTyping:false});
+        if(this.isBusy())
+            return;
         let comp = this;
-        if(val.length >  1)
-            this.setState({options:  await comp.getResorts(val)   })
-        else
-            this.setState({options:  [] })
-        this.setState( {disabled: !comp._resortExist(), busy:false })
+        this.setState({options: [] },async function(){
+            if(val.length >  1)
+                comp.setState({options:  await comp.getResorts(val).catch(comp.handleError)   })
+            comp.setState( {disabled: !comp._resortExist(), busy:false })
+        })
+    }
+    handleError(error){
+        console.error(error);
+        this.setState( {disabled: false, busy:false, error:true})
     }
     handleClick(){
-        this.fecthResort(this.state.value);
+        this.fecthResort(this.state.value).catch(this.handleError);
     }
     isBusy(){
         return this.state.busy;
     }
-    checkOptions(){
+    isError(){
+        return this.state.error;
+    }
+    showNotice(){
+        if(this.isError()){
+            return <span className="jpg-fnugg-block-error">{this.props.__('There was an error processing the query.','jpg-fnugg-block')}</span>
+        }
         if(this.isBusy()){
-            return <div><Spinner/><span>Please wait. Looking for resorts...</span></div>
+            return (<div><Spinner/><span>{this.props.__('Please wait...','jpg-fnugg-block')}</span></div>)
         }else{
-            return (isEmpty( this.state.options ) || !this._resortExist())? 'No resorts found. Please make a new search.':'';
+            return isEmpty( this.state.options ) ? this.props.__('No resorts found. Please make a new search.','jpg-fnugg-block'):'';
         }
     }
 
@@ -107,19 +134,16 @@ class FnuggAutocomplete extends React.Component {
                 label={this.props.__('Search a resort: ','jpg-fnugg-block')}
                 value={ this.state.value } 
                 onChange={ this.typing }
+                autoComplete="off"
                 />
-                {/*
-                <label for={ blockId }>{ this.props.label }</label>
-                <input list={ blockId } value={ this.state.value } onInput={ this.typing }/>
-                */}
                 <datalist id={ blockId }>
                     { this.state.options.map( ( option, index ) => <option value={option} readonly/>) }
                 </datalist>
                 <Button variant='secondary' onClick={ this.handleClick} isBusy={ this.isBusy() }>
-                    Refresh resort info
+                    {this.props.__('Refresh resort info','jpg-fnugg-block') }
                 </Button>
-                <br/>
-                <label>{  this.checkOptions()  } </label>
+                <br />
+                <label>{  this.showNotice()  } </label>
             </div>
         )
     }
