@@ -15,7 +15,7 @@ class FnuggCard extends React.Component {
 	}
 	skyIcon(condition){
 		//show sky condition icon
-		let symbols  = {"Sun":"sun","PartlyCloud":"cloud","LightCloud":"cloud-sun","Cloud":"clouds","Rain":"raindrops","-":"exclamation"}
+		let symbols  = {"Sun":"sun","PartlyCloud":"cloud","LightCloud":"cloud-sun","Cloud":"clouds","Rain":"raindrops","LightRain":"cloud-rain","-":"exclamation"}
 		return "fas fa-" + (symbols[condition])
 	}
 	render(){
