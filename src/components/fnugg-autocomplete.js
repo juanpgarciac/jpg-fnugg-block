@@ -1,6 +1,6 @@
 import { Spinner } from '@wordpress/components';
 import { isEmpty } from 'lodash';
-
+import { TextControl, Button } from '@wordpress/components';
 class FnuggAutocomplete extends React.Component {
     constructor(props){
         super(props);
@@ -19,16 +19,22 @@ class FnuggAutocomplete extends React.Component {
         this.isBusy =this.isBusy.bind(this);
         this.checkOptions =this.checkOptions.bind(this);
     }
+    componentDidMount(){
+        //if there is a saved result, add it as an initial and unique option. 
+        if (this.props.attrs?.resortData?.name || false){
+            this.setState({options:[ this.props.attrs?.resortData?.name ]});
+        }
+    }
+
     _resortExist(){
         let val = this.state.value;
         const exist  = (element) => element.trim().toLowerCase() === val.trim().toLowerCase();
         return this.state.options.some(exist);
     }
-    typing(e){
+    typing(val){
         if(this.state.typingTimeOut)
             clearTimeout(this.state.typingTimeOut);
         this.setState({isStillTyping:true});
-        let val = e.target.value;
         let comp = this;
         this.setState({value:val},function(){
             if(!comp._resortExist())                            
@@ -96,14 +102,22 @@ class FnuggAutocomplete extends React.Component {
         const blockId = `fnugg-autocomplete-${ this.props.id }`;
         return (
             <div>
+                <TextControl
+                list={ blockId }
+                label={this.props.__('Search a resort: ','jpg-fnugg-block')}
+                value={ this.state.value } 
+                onChange={ this.typing }
+                />
+                {/*
                 <label for={ blockId }>{ this.props.label }</label>
                 <input list={ blockId } value={ this.state.value } onInput={ this.typing }/>
+                */}
                 <datalist id={ blockId }>
                     { this.state.options.map( ( option, index ) => <option value={option} readonly/>) }
                 </datalist>
-                <button onClick={ this.handleClick} disabled={ this.state.disabled }>
+                <Button variant='secondary' onClick={ this.handleClick} isBusy={ this.isBusy() }>
                     Refresh resort info
-                </button>
+                </Button>
                 <br/>
                 <label>{  this.checkOptions()  } </label>
             </div>

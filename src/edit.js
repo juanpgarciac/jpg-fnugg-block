@@ -54,7 +54,9 @@ export default function Edit(props) {
 				label= {__('Search a resort: ','jpg-fnugg-block')}
 				onChange = { onChangeResort }
 				attrs={attributes}
+				__={ __ }
 			/>
+			<br />
 			<FnuggCard attrs = {attributes} __={ __ } />
 		</div>
 	);

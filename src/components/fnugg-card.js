@@ -6,27 +6,35 @@ class FnuggCard extends React.Component {
 	}
 	_rd(key){
 		//get resort data with a key
-		return (this.props.attrs?.resortData[key]) ?? {};
+		return (this.props.attrs?.resortData[key]) ?? null;
 	}
 	windDirection(d){
-		//considering the arrow icon is poiting at north (90°)
-		let coordinates = {"N":0,"S":180,"E":-90,"W":90,"NE":-45,"NW":45,"SW":135,"SE":225}
-		console.log('rotate('+(coordinates[d])+'deg)'	);
-		return 'rotate('+(coordinates[d])+'deg)'	
+		//considering the arrow icon is poiting at north (90°) set arrow position with transform rotate css function
+		let coordinates = {"N":0,"S":180,"E":90,"W":-90,"NE":45,"NW":-45,"SW":225,"SE":135}
+		return 'rotate('+(coordinates[d] || 0)+'deg)'	
 	}
 	skyIcon(condition){
+		//show sky condition icon
 		let symbols  = {"Sun":"sun","PartlyCloud":"cloud","LightCloud":"cloud-sun","Cloud":"clouds","Rain":"raindrops","-":"exclamation"}
 		return "fas fa-" + (symbols[condition])
 	}
 	render(){
-		return (
+		//if no info, just blank
+		if(this.props.attrs.id == "") return (<div></div>)
+		else return (
 		<div className="jpg-fnugg-parent">
-			<div className="jpgfnugg-container" style={{ backgroundImage: 'url('+this.props.attrs?.resortData?.image+')' }}>
+			<div className="jpgfnugg-container" style={{ backgroundImage: 'url('+this._rd('image')+')' }}>
 				<div className="jpgfnugg-container__info">
-					<span title={ this.props.__('Temperature:','jpg-fnugg-block') +' '+ this.props.__(this._rd('temperature')?.value ?? '-','jpg-fnugg-block')+'° ' + this.props.__(this._rd('temperature')?.unit ?? '','jpg-fnugg-block') }> 
+					<span title={ 
+						this.props.__('Temperature:','jpg-fnugg-block') +' '+ 
+						this.props.__(this._rd('temperature')?.value ?? '-','jpg-fnugg-block')+'° '+
+						this.props.__(this._rd('temperature')?.unit ?? '','jpg-fnugg-block') }> 
 						 <i className="fas fa-thermometer-half"></i>{  this._rd('temperature')?.value+ '°'  }
 					</span>
-		 			<span title={ this.props.__('Sky condition:','jpg-fnugg-block') +' '+ this.props.__(this._rd('sky') ?? '-','jpg-fnugg-block') }>
+		 			<span title={ 
+						 this.props.__('Sky condition:','jpg-fnugg-block') +' '+ 
+						 this.props.__(this._rd('sky') ?? '-','jpg-fnugg-block') 
+						 }>
 						 <i className={ this.skyIcon(this._rd('sky') ?? '-') }></i>
 						 <small>{ this.props.__(this._rd('sky') ?? '-','jpg-fnugg-block') }</small>
 					</span>
@@ -38,7 +46,7 @@ class FnuggCard extends React.Component {
 						 }>
 						 <i className="fas fa-wind"></i>{this._rd('wind')?.mps ?? '-'}
 						 <small>m/s</small>&nbsp; 						 
-						 <small>{this.props.__(this._rd('wind')?.speed,'jpg-fnugg-block')}</small>
+						 <small>{this.props.__(this._rd('wind')?.speed,'jpg-fnugg-block')}</small>&nbsp;
 						 <i class="fas fa-arrow-up" style={{transform: this.windDirection( this._rd('wind')?.name ) }}></i>
 					</span>
 

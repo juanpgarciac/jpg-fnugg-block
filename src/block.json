@@ -17,7 +17,22 @@
 		},
 		"resortData":{
 			"type":"object",
-			"default":{}
+			"default":{
+				"name":"",
+				"image":"",
+				"last_updated":"",
+				"temperature":{
+					"value":0,
+					"unit":"celsius"
+				},
+				"wind":{
+					"name":"N",
+					"speed":"",
+					"mps":0
+				},
+				"condition":"",
+				"sky":""
+			}
 		}
 	},
 	"textdomain": "jpg-fnugg-block",
