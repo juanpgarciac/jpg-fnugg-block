@@ -10,7 +10,7 @@ class FnuggCard extends React.Component {
 	}
 	windDirection(d){
 		//considering the arrow icon is poiting at north (90°) set arrow position with transform rotate css function
-		let coordinates = {"N":0,"S":180,"E":90,"W":-90,"NE":45,"NW":-45,"SW":225,"SE":135}
+		let coordinates = {"N":0,"S":180,"E":90,"W":-90,"NE":45,"NW":-45,"SW":225,"SE":135,"-":0}
 		return 'rotate('+(coordinates[d] || 0)+'deg)'	
 	}
 	skyIcon(condition){
@@ -29,7 +29,7 @@ class FnuggCard extends React.Component {
 						this.props.__('Temperature:','jpg-fnugg-block') +' '+ 
 						this.props.__(this._rd('temperature')?.value ?? '-','jpg-fnugg-block')+'° '+
 						this.props.__(this._rd('temperature')?.unit ?? '','jpg-fnugg-block') }> 
-						 <i className="fas fa-thermometer-half"></i>{  this._rd('temperature')?.value+ '°'  }
+						 <i className="fas fa-thermometer-half"></i>{  (this._rd('temperature')?.value ?? '-')+ '°'  }
 					</span>
 		 			<span title={ 
 						 this.props.__('Sky condition:','jpg-fnugg-block') +' '+ 
@@ -40,14 +40,14 @@ class FnuggCard extends React.Component {
 					</span>
 		 			<span title={
 						 this.props.__('Wind direction & speed:','jpg-fnugg-block') +' '+ 
-						 this._rd('wind')?.name + ' | ' + 
-						 this._rd('wind')?.mps+' m/s '+ 
-						 this.props.__(this._rd('wind')?.speed,'jpg-fnugg-block')
+						 (this._rd('wind')?.name??'-') + ' | ' + 
+						 (this._rd('wind')?.mps??'-')+' m/s '+ 
+						 this.props.__(this._rd('wind')?.speed ?? '-','jpg-fnugg-block')
 						 }>
 						 <i className="fas fa-wind"></i>{this._rd('wind')?.mps ?? '-'}
 						 <small>m/s</small>&nbsp; 						 
-						 <small>{this.props.__(this._rd('wind')?.speed,'jpg-fnugg-block')}</small>&nbsp;
-						 <i class="fas fa-arrow-up" style={{transform: this.windDirection( this._rd('wind')?.name ) }}></i>
+						 <small>{this.props.__(this._rd('wind')?.speed ?? '-','jpg-fnugg-block')}</small>&nbsp;
+						 <i class="fas fa-arrow-up" style={{transform: this.windDirection( this._rd('wind')?.name ?? '-' ) }}></i>
 					</span>
 
 				</div>
