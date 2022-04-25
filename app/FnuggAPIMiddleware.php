@@ -115,7 +115,7 @@ class FnuggAPIMiddleware
 
         //if the resort "key" is not found or expired: fetch api, save the data response into cache and return it. 
         if (!$cachedResort->isHit()) {
-            $sourceFields = 'name,images.image_1_1_s,conditions.forecast.today.top,region';
+            $sourceFields = 'name,images.image_1_1_s,conditions.forecast.today.top';
             $response = wp_remote_get( FNUGG_API_URL."/search?q={$query}&sourceFields={$sourceFields}");
             
             if( is_wp_error( $response ) ) {
@@ -131,7 +131,6 @@ class FnuggAPIMiddleware
                 $resort = [
                     "name" => $source["name"],
                     "image" => $source["images"]["image_1_1_s"],
-                    "region" => $source["region"][0],
                     "last_updated" => date("d.m.Y - h:i",strtotime($conditions["last_updated"])),
                     "sky" => $conditions["symbol"]["name"],
                     "condition" => $conditions["condition_description"],
