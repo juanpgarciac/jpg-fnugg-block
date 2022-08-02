@@ -1,4 +1,4 @@
-This was a project challenge for a job application. I have to make a WordsPress Guttenberg Block that connects to an external API.
+This was a project challenge for a job application. I have to make a WordPress Guttenberg Block that connects to an external API.
 
 Technologies involved: WordPress, PHP, JavaScript, React
 
